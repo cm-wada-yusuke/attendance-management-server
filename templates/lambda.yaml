@@ -1,31 +1,37 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
-  HelloWorldHelloLambda:
+  SlackSubscribeLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${Env}-${AppName}-hello
-      Role: !GetAtt HelloWorldLambdaRole.Arn
-      Handler: hello-world/index.handler
+      FunctionName: !Sub ${Env}-${AppName}-subscribe
+      Role: !GetAtt SlackIntegrationLambdaRole.Arn
+      Handler: subscribe/index.handler
       Runtime: nodejs10.x
       CodeUri:
         Bucket: !Ref DeployBucketName
         Key: !Sub ${ChangeSetHash}/dist.zip
-      Timeout: 5
+      Timeout: 10
       Environment:
         Variables:
           ENV: !Ref Env
-          GREETING_TABLE_NAME: !Ref GreetingTableName
           REGION: !Ref AWS::Region
+      Events:
+        AttendanceApi:
+          Type: Api
+          Properties:
+            Path: /subscribe
+            Method: POST
+            RestApiId: !Ref AttendanceApi
 
-  HelloWorldLambdaRole:
+
+  SlackIntegrationLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
       RoleName: !Sub ${Env}-${AppName}-lambda-role
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
       Policies:
         - PolicyName: PermissionToPassAnyRole
           PolicyDocument:
@@ -45,3 +51,79 @@ Resources:
                 - 'lambda.amazonaws.com'
             Action:
               - 'sts:AssumeRole'
+
+
+  AttendanceApi:
+    Type: 'AWS::Serverless::Api'
+    Properties:
+      Name: !Sub ${Env}-${AppName}-attendance-api
+      StageName: !Ref ApiVersion
+      EndpointConfiguration: REGIONAL
+      DefinitionBody:
+        swagger: "2.0"
+        info:
+          version: "1.0"
+        x-amazon-apigateway-request-validators:
+          params-only:
+            validateRequestBody: false
+            validateRequestParameters: true
+          all:
+            validateRequestBody: true
+            validateRequestParameters: true
+        paths:
+          /subscribe:
+            post:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              parameters:
+                - name: Subscribe
+                  in: "body"
+                  required: true
+                  schema:
+                    $ref: "#/definitions/Subscribe"
+              responses:
+                "200":
+                  schema:
+                    $ref: "#/definitions/ChallengeResult"
+              x-amazon-apigateway-request-validator: all
+              x-amazon-apigateway-integration:
+                type: AWS
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SlackSubscribeLambda.Arn}/invocations
+                requestTemplates:
+                  application/json: |
+                    $input.json('$')
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: |
+                        $input.json('$')
+                passthroughBehavior: "WHEN_NO_MATCH"
+                httpMethod: "POST"
+                contentHandling: "CONVERT_TO_TEXT"
+
+        definitions:
+          Subscribe:
+            type: object
+            properties:
+              type:
+                type: string
+              user:
+                type: string
+              reaction:
+                type: string
+              item_user:
+                type: string
+              item:
+                type:
+                  type: string
+                channel:
+                  type: string
+                ts:
+                  type: string
+              event_ts:
+                type: string
+

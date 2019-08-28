@@ -18,5 +18,9 @@
   {
     "Name": "Wcu",
     "Value": "1"
+  },
+  {
+    "Name": "ApiVersion",
+    "Value": "v1"
   }
 ]
