@@ -88,6 +88,7 @@ Resources:
           REGION: !Ref AWS::Region
           OAUTH_ACCESS_TOKEN: !Ref OAuthAccessToken
           BOT_ACCESS_TOKEN: !Ref BotAccessToken
+          WHITE_CHANNEL_TABLE_NAME: !Ref WhiteChannelTableName
       Events:
         EventSubscribeStream:
           Type: Kinesis

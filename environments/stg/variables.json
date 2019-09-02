@@ -12,6 +12,10 @@
     "Value": "stg-greeting"
   },
   {
+    "Name": "WhiteChannelTableName",
+    "Value": "stg-attendance-white-channel-list"
+  },
+  {
     "Name": "Rcu",
     "Value": "1"
   },

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import * as qs from 'qs';
-import { UserProfile } from '../../domains/attendance/reaction-attendance-use-case';
+import { ReactionContent, UserProfile } from '../../domains/attendance/reaction-attendance-use-case';
 
 const OAuthAccessToken = process.env.OAUTH_ACCESS_TOKEN!;
-// const BotAccessToken = process.env.BOT_ACCESS_TOKEN!;
+const BotAccessToken = process.env.BOT_ACCESS_TOKEN!;
 
 export class ApiClientSlack {
 
@@ -33,65 +33,63 @@ export class ApiClientSlack {
       console.log(e);
       throw e;
     }
-
-
   }
 
-  // static async getReactions(thread: ThreadInfo): Promise<void> {
-  //     const param: ConversationsReactionParameter = {
-  //         channel: thread.channel,
-  //         timestamp: thread.ts,
-  //         full: true,
-  //     };
-  //     const query = qs.stringify(param);
-  //     const url = `https://slack.com/api/reactions.get?${query}`;
-  //     console.log(url);
-  //     try {
-  //         const response = await axios.get(url, {
-  //             headers: {
-  //                 'Content-Type': 'application/json;utf-8',
-  //                 'Authorization': `Bearer ${OAuthAccessToken}`
-  //             }
-  //         });
-  //         console.log(response.data);
-  //         console.log(response.data.message.reactions);
-  //     } catch (e) {
-  //         console.log(e);
-  //         throw e;
-  //     }
-  //
-  //
-  // }
 
-  // static async postEphemeralMessage(ephemeralMessage: EphemeralMessage): Promise<void> {
-  //   console.log(ephemeralMessage);
-  //   try {
-  //     const response = await axios.post('https://slack.com/api/chat.postEphemeral', ephemeralMessage, {
-  //       headers: {
-  //         'Content-Type': 'application/json;utf-8',
-  //         'Authorization': `Bearer ${BotAccessToken}`
-  //       }
-  //     });
-  //     console.log(response);
-  //   } catch (e) {
-  //     console.log(e);
-  //     throw e;
-  //   }
-  // }
+  public static async postReactionDetail(reaction: ReactionContent, profile: UserProfile): Promise<void> {
+    const request: PostMessageRequest = {
+      token:BotAccessToken,
+      channel: reaction.item.channel,
+      as_user: false,
+      thread_ts: reaction.item.ts,
+      username: 'Attendancer',
+      blocks: ApiClientSlack.createBlockString(reaction, profile)
+    };
+
+    try {
+      const response = await axios.post('https://slack.com/api/chat.postMessage', request, {
+        headers: {
+          'Content-Type': 'application/json;utf-8',
+          'Authorization': `Bearer ${BotAccessToken}`
+        }
+      });
+      console.log(response);
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  }
+
+  private static createBlockString(reaction: ReactionContent, profile: UserProfile): string{
+    return JSON.stringify([
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `:${reaction.reaction}:`
+        }
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "image",
+            "image_url": profile.image24,
+            "alt_text": profile.name,
+          },
+          {
+            "type": "mrkdwn",
+            "text": `@${profile.name} <!date^${parseInt(reaction.eventTs)}^Reacted {date_num} {time_secs}|Reacted 2014-02-18 6:39:42 AM>`
+          }
+        ]
+      },
+      {
+        "type": "divider"
+      }
+    ]);
+  }
 }
 
-
-// interface ConversationsRepliesParameter {
-//     channel: string;
-//     ts: string;
-//     limit?: string;
-// }
-//
-// interface ConversationsReactionParameter {
-//     channel: string;
-//     timestamp: string;
-//     full: boolean;
-// }
 
 interface UsersInfoResponse {
   user: {
@@ -101,4 +99,13 @@ interface UsersInfoResponse {
       image_24: string;
     }
   }
+}
+
+interface PostMessageRequest {
+  token: string;
+  channel: string;
+  as_user: boolean;
+  blocks: string;
+  thread_ts: string;
+  username: string;
 }

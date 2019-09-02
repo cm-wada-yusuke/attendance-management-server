@@ -13,3 +13,14 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: !Ref Rcu
         WriteCapacityUnits: !Ref Wcu
+  AttendanceWhiteChannelTableName:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref WhiteChannelTableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: channelId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: channelId
+          KeyType: HASH
