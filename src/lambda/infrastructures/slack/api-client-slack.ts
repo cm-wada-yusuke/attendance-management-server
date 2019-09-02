@@ -79,7 +79,7 @@ export class ApiClientSlack {
           },
           {
             "type": "mrkdwn",
-            "text": `@${profile.name} <!date^${parseInt(reaction.eventTs)}^Reacted {date_num} {time_secs}|Reacted 2014-02-18 6:39:42 AM>`
+            "text": `${profile.name} <!date^${parseInt(reaction.eventTs)}^Reacted {date_num} {time_secs}|Reacted 2014-02-18 6:39:42 AM>`
           }
         ]
       },
