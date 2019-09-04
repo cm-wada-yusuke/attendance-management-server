@@ -40,10 +40,10 @@ Resources:
                     - |
                       {
                           "StreamName": "${EventStream}",
-                          "Data": "$util.base64Encode($input.json('$')",
+                          "Data": "$util.base64Encode($input.body)",
                           "PartitionKey": "$context.requestId"
                       }
-                    - { EventStream: !GetAtt SlackEventSubscribeStream.Arn }
+                    - { EventStream: !Ref SlackEventSubscribeStream }
                 responses:
                   default:
                     statusCode: "200"
