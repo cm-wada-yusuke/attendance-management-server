@@ -24,25 +24,34 @@ export async function handler(event: KinesisRecords): Promise<void[]> {
 class KinesisEventSubscribeController {
 
   public static async filterEvents(events: SubscribeEvent[]): Promise<SubscribeEvent[]> {
-    const eventInfos: EventInfo[] = events.map(e => ({
-      itemUser: e.event.item_user,
-      channel: e.event.item.channel
-    }));
-    const filteredInfos = await ReactionAttendanceUseCase.filterEvents(eventInfos);
+    try {
+      const eventInfos: EventInfo[] = events.map(e => ({
+        itemUser: e.event.item_user,
+        channel: e.event.item.channel
+      }));
+      const filteredInfos = await ReactionAttendanceUseCase.filterEvents(eventInfos);
 
-    return events.filter(e => filteredInfos.map(i => i.channel).includes(e.event.item.channel));
+      return events.filter(e => filteredInfos.map(i => i.channel).includes(e.event.item.channel));
+    } catch (e) {
+      Console.log('filterEvents failed. Reason: ', e);
+      return [];
+    }
   }
 
-  public static forwardEvent(payload: SubscribeEvent): Promise<void> {
+  public static async forwardEvent(payload: SubscribeEvent): Promise<void> {
     Console.log(payload);
-    return ReactionAttendanceUseCase.reaction({
-      eventTs: payload.event.event_ts,
-      itemUser: payload.event.item_user,
-      user: payload.event.user,
-      reaction: payload.event.reaction,
-      type: payload.event.type,
-      item: payload.event.item
-    });
+    try {
+      await ReactionAttendanceUseCase.reaction({
+        eventTs: payload.event.event_ts,
+        itemUser: payload.event.item_user,
+        user: payload.event.user,
+        reaction: payload.event.reaction,
+        type: payload.event.type,
+        item: payload.event.item
+      });
+    } catch (e) {
+      Console.log('forwardEvent failed. Reason: ', e);
+    }
   }
 }
 
