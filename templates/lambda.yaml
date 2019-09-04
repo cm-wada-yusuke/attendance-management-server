@@ -52,32 +52,6 @@ Resources:
                         $input.json('$')
                 passthroughBehavior: "WHEN_NO_TEMPLATES"
 
-
-
-#  SlackEventLambda:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      FunctionName: !Sub ${Env}-${AppName}-event
-#      Role: !GetAtt SlackIntegrationLambdaRole.Arn
-#      Handler: event/index.handler
-#      Runtime: nodejs10.x
-#      CodeUri:
-#        Bucket: !Ref DeployBucketName
-#        Key: !Sub ${ChangeSetHash}/dist.zip
-#      Timeout: 10
-#      Environment:
-#        Variables:
-#          ENV: !Ref Env
-#          REGION: !Ref AWS::Region
-#          SLACK_EVENT_SUBSCRIBE_STREAM: !Ref SlackEventSubscribeStream
-#      Events:
-#        AttendanceApi:
-#          Type: Api
-#          Properties:
-#            Path: /event
-#            Method: POST
-#            RestApiId: !Ref AttendanceApi
-
   SlackSubscribeLambda:
     Type: AWS::Serverless::Function
     Properties:
