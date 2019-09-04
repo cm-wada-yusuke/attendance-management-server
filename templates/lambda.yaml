@@ -26,50 +26,57 @@ Resources:
               produces:
                 - "application/json"
               responses:
-                "200":
-                  schema:
-                    $ref: "#/definitions/ChallengeResult"
+                "200": {}
               x-amazon-apigateway-request-validator: all
+              requestParameters:
+                integration.request.header.Content-Type: "'application/x-amz-json-1'"
               x-amazon-apigateway-integration:
                 type: AWS
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SlackEventLambda.Arn}/invocations
+                credentials: !GetAtt SlackIntegrationApiRole.Arn
+                httpMethod: POST
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:kinesis:action/PutRecord
                 requestTemplates:
-                  application/json: |
-                    $input.json('$')
+                  application/json: !Sub
+                    - |
+                      {
+                          "StreamName": "${EventStream}",
+                          "Data": "$util.base64Encode($input.json('$')",
+                          "PartitionKey": "$context.requestId"
+                      }
+                    - { EventStream: !GetAtt SlackEventSubscribeStream.Arn }
                 responses:
                   default:
                     statusCode: "200"
                     responseTemplates:
                       application/json: |
                         $input.json('$')
-                passthroughBehavior: "WHEN_NO_MATCH"
-                httpMethod: "POST"
-                contentHandling: "CONVERT_TO_TEXT"
+                passthroughBehavior: "WHEN_NO_TEMPLATES"
 
 
-  SlackEventLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub ${Env}-${AppName}-event
-      Role: !GetAtt SlackIntegrationLambdaRole.Arn
-      Handler: event/index.handler
-      Runtime: nodejs10.x
-      CodeUri:
-        Bucket: !Ref DeployBucketName
-        Key: !Sub ${ChangeSetHash}/dist.zip
-      Timeout: 10
-      Environment:
-        Variables:
-          ENV: !Ref Env
-          REGION: !Ref AWS::Region
-          SLACK_EVENT_SUBSCRIBE_STREAM: !Ref SlackEventSubscribeStream
-      Events:
-        AttendanceApi:
-          Type: Api
-          Properties:
-            Path: /event
-            Method: POST
-            RestApiId: !Ref AttendanceApi
+
+#  SlackEventLambda:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      FunctionName: !Sub ${Env}-${AppName}-event
+#      Role: !GetAtt SlackIntegrationLambdaRole.Arn
+#      Handler: event/index.handler
+#      Runtime: nodejs10.x
+#      CodeUri:
+#        Bucket: !Ref DeployBucketName
+#        Key: !Sub ${ChangeSetHash}/dist.zip
+#      Timeout: 10
+#      Environment:
+#        Variables:
+#          ENV: !Ref Env
+#          REGION: !Ref AWS::Region
+#          SLACK_EVENT_SUBSCRIBE_STREAM: !Ref SlackEventSubscribeStream
+#      Events:
+#        AttendanceApi:
+#          Type: Api
+#          Properties:
+#            Path: /event
+#            Method: POST
+#            RestApiId: !Ref AttendanceApi
 
   SlackSubscribeLambda:
     Type: AWS::Serverless::Function
@@ -123,6 +130,23 @@ Resources:
             Principal:
               Service:
                 - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+  SlackIntegrationApiRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${Env}-${AppName}-api-role
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonKinesisFullAccess'
+        - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
             Action:
               - 'sts:AssumeRole'
 

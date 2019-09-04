@@ -13,7 +13,7 @@
   },
   {
     "Name": "WhiteChannelTableName",
-    "Value": "stg-attendance-white-channel-list"
+    "Value": "stg-attendance-white-list"
   },
   {
     "Name": "Rcu",
