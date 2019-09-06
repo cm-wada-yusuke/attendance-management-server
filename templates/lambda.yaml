@@ -69,14 +69,14 @@ Resources:
           REGION: !Ref AWS::Region
           OAUTH_ACCESS_TOKEN: !Ref OAuthAccessToken
           BOT_ACCESS_TOKEN: !Ref BotAccessToken
-          WHITE_CHANNEL_TABLE_NAME: !Ref WhiteChannelTableName
+          WHITE_CHANNEL_TABLE_NAME: !Ref AttendanceWhiteChannelTable
       Events:
         EventSubscribeStream:
           Type: Kinesis
           Properties:
             Stream: !GetAtt SlackEventSubscribeStream.Arn
             StartingPosition: LATEST
-            BatchSize: 10
+            BatchSize: 100
             Enabled: true
 
   SlackIntegrationLambdaRole:
@@ -131,4 +131,14 @@ Resources:
       RetentionPeriodHours: 24
       ShardCount: 1
 
-
+  AttendanceWhiteChannelTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${Env}-${AppName}-white-list
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: channelId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: channelId
+          KeyType: HASH

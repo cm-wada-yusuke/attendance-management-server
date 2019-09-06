@@ -1,7 +1,6 @@
-import * as  DynamoDB from 'aws-sdk/clients/dynamodb';
+import { DynamoDB } from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
 import { Channel } from '../../domains/attendance/reaction-attendance-use-case';
-import ScanInput = DocumentClient.ScanInput;
 
 const WhiteChannelTableName = process.env.WHITE_CHANNEL_TABLE_NAME!;
 const Region = process.env.REGION!;
@@ -17,7 +16,7 @@ export class DynamodbWhiteChannelTable {
 
   public static async scan(): Promise<Channel[]> {
 
-    const params: ScanInput = {
+    const params: DocumentClient.ScanInput = {
       TableName: WhiteChannelTableName,
     };
 

@@ -13,12 +13,11 @@ export async function handler(event: KinesisRecords): Promise<void[]> {
     Console.log('decoded', payloadString);
     return JSON.parse(payloadString) as SubscribeEvent;
   });
-
-  Console.log('origin:', subscribeEvents);
+  Console.log('origin', subscribeEvents);
 
   const filtered = await KinesisEventSubscribeController.filterEvents(subscribeEvents);
+  Console.log('filtered', filtered);
 
-  Console.log('filtered:', filtered);
 
   const promisedPost = filtered.map(KinesisEventSubscribeController.forwardEvent);
   return Promise.all(promisedPost);
