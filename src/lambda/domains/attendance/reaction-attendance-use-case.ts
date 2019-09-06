@@ -3,6 +3,11 @@ import * as Console from 'console';
 import { DynamodbWhiteChannelTable } from '../../infrastructures/dynamo/dynamodb-white-channel-table';
 
 export class ReactionAttendanceUseCase {
+
+  /**
+   * リアクションイベントからユーザー情報を取得し、リプライとして投稿します。
+   * @param sub リアクションイベント情報
+   */
   public static async reaction(sub: ReactionContent): Promise<void> {
     // ユーザー情報収集
     const userProfile = await ApiClientSlack.getUser(sub.user);

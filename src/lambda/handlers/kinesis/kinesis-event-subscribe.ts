@@ -7,15 +7,17 @@ export async function handler(event: KinesisRecords): Promise<void[]> {
   Console.log(event);
 
   const subscribeEvents: SubscribeEvent[] = event.Records.map(record => {
+    Console.log('record.kinesis', record.kinesis);
+    Console.log('record.kinesis.data', record.kinesis.data);
     const payloadString = Buffer.from(record.kinesis.data, 'base64').toString('utf-8');
+    Console.log('decoded', payloadString);
     return JSON.parse(payloadString) as SubscribeEvent;
   });
-
-  Console.log('origin:', subscribeEvents);
+  Console.log('origin', subscribeEvents);
 
   const filtered = await KinesisEventSubscribeController.filterEvents(subscribeEvents);
+  Console.log('filtered', filtered);
 
-  Console.log('filtered:', filtered);
 
   const promisedPost = filtered.map(KinesisEventSubscribeController.forwardEvent);
   return Promise.all(promisedPost);
