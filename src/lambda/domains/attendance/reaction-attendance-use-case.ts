@@ -23,7 +23,7 @@ export class ReactionAttendanceUseCase {
     // ホワイトリストに登録されていること
     const whiteChannelList: Channel[] = await DynamodbWhiteChannelTable.scan();
     Console.log('whiteList', whiteChannelList);
-    const whiteEvents =  events.filter(e => whiteChannelList.map(c => c.channel).includes(e.channel));
+    const whiteEvents = events.filter(e => whiteChannelList.map(c => c.channel).includes(e.channel));
 
     // SlackBotに対するリアクションであること
     return whiteEvents.filter(e => e.itemUser === 'USLACKBOT');
@@ -49,7 +49,15 @@ export interface ReactionContent {
 export interface UserProfile {
   id: string;
   name: string;
+  realName: string;
+  displayName: string;
+  tz: string;
+  tzLabel: string;
   image24: string;
+  image32: string;
+  image48: string;
+  statusEmoji: string;
+  statusText: string;
 }
 
 

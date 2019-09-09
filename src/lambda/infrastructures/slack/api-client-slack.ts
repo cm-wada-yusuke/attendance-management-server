@@ -32,8 +32,16 @@ export class ApiClientSlack {
       return {
         id: user.user.id,
         name: user.user.name,
+        realName: user.user.real_name,
+        displayName: user.user.profile.display_name,
+        tz: user.user.tz,
+        tzLabel: user.user.tz_label,
         // プロファイル画像を設定することにしたのでユーザープロファイルに含まれる `image_24` も取得します。
-        image24: user.user.profile.image_24
+        image24: user.user.profile.image_24,
+        image32: user.user.profile.image_32,
+        image48: user.user.profile.image_48,
+        statusEmoji: user.user.profile.status_emoji,
+        statusText: user.user.profile.status_text
       }
     } catch (e) {
       Console.log(e);
@@ -52,8 +60,9 @@ export class ApiClientSlack {
       token: BotAccessToken,
       channel: reaction.item.channel,
       as_user: false,
+      icon_url: profile.image48,
       thread_ts: reaction.item.ts, // thread_ts を指定すると特定のスレッドに対するリプライになります。
-      username: 'Attendancer',
+      username: `Attendancer - ${profile.displayName ? profile.displayName : profile.name}`,
       blocks: ApiClientSlack.createBlockString(reaction, profile)
     };
 
@@ -77,6 +86,9 @@ export class ApiClientSlack {
    * @param profile ユーザープロファイル
    */
   private static createBlockString(reaction: ReactionContent, profile: UserProfile): string {
+    const statusEmoji = `${profile.statusEmoji ? profile.statusEmoji : ''}`;
+    const timestampBlock = `<!date^${parseInt(reaction.eventTs)}^Reacted {date_num} {time_secs}|Reacted 2014-02-18 6:39:42 AM>`;
+
     return JSON.stringify([
       {
         'type': 'section',
@@ -89,22 +101,16 @@ export class ApiClientSlack {
         'type': 'context',
         'elements': [
           {
-            'type': 'image',
-            'image_url': profile.image24,
-            'alt_text': profile.name,
-          },
-          {
             'type': 'mrkdwn',
             // 時刻は、Slack のクライアントのタイムゾーンに合わせるためSlack指定の形式を利用しています。
-            'text': `${profile.name} <!date^${parseInt(reaction.eventTs)}^Reacted {date_num} {time_secs}|Reacted 2014-02-18 6:39:42 AM>`
+            'text': `${statusEmoji} ${timestampBlock}`
           }
         ]
       },
-      {
-        'type': 'divider'
-      }
     ]);
   }
+
+
 }
 
 
@@ -112,8 +118,16 @@ interface UsersInfoResponse {
   user: {
     id: string;
     name: string;
+    real_name: string;
+    tz: string;
+    tz_label: string;
     profile: {
+      display_name: string;
+      status_emoji: string;
+      status_text: string;
       image_24: string;
+      image_32: string;
+      image_48: string;
     }
   }
 }
@@ -122,6 +136,7 @@ interface PostMessageRequest {
   token: string;
   channel: string;
   as_user: boolean;
+  icon_url: string;
   blocks: string;
   thread_ts: string;
   username: string;
