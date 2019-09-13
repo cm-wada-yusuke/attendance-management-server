@@ -14,16 +14,30 @@ const DYNAMO = new DynamoDB.DocumentClient(
 
 export class DynamodbWhiteChannelTable {
 
-  public static async scan(): Promise<Channel[]> {
+  public static async scan(): Promise<string[]> {
 
     const params: DocumentClient.ScanInput = {
       TableName: WhiteChannelTableName,
+      AttributesToGet: ['channelId']
     };
 
     const response = await DYNAMO.scan(params).promise();
-    return response.Items!.map(item => ({
-      channel: item.channelId
-    }));
+    return response.Items!.map(item => item.channelId);
+  }
+
+  public static async get(channelId: string): Promise<Channel> {
+    const param: DocumentClient.GetItemInput = {
+      TableName: WhiteChannelTableName,
+      Key: {channelId}
+    };
+
+    const response = await DYNAMO.get(param).promise();
+    const item = response.Item!;
+    return {
+      channel: item.channelId,
+      startReactionList: item.startReactionList ? item.startReactionList as string[] : [],
+      endReactionList: item.endReactionList ? item.endReactionList as string[] : []
+    }
   }
 
 }

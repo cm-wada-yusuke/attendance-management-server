@@ -34,6 +34,7 @@ export class ApiClientSlack {
         name: user.user.name,
         realName: user.user.real_name,
         displayName: user.user.profile.display_name,
+        email: user.user.profile.email,
         tz: user.user.tz,
         tzLabel: user.user.tz_label,
         // プロファイル画像を設定することにしたのでユーザープロファイルに含まれる `image_24` も取得します。
@@ -122,6 +123,7 @@ interface UsersInfoResponse {
     tz: string;
     tz_label: string;
     profile: {
+      email: string;
       display_name: string;
       status_emoji: string;
       status_text: string;

@@ -70,6 +70,7 @@ Resources:
           OAUTH_ACCESS_TOKEN: !Ref OAuthAccessToken
           BOT_ACCESS_TOKEN: !Ref BotAccessToken
           WHITE_CHANNEL_TABLE_NAME: !Ref AttendanceWhiteChannelTable
+          ATTENDANCE_MANAGEMENT_TABLE_NAME: !Ref AttendanceManagementTable
       Events:
         EventSubscribeStream:
           Type: Kinesis
@@ -142,3 +143,56 @@ Resources:
       KeySchema:
         - AttributeName: channelId
           KeyType: HASH
+
+  AttendanceManagementTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${Env}-${AppName}-time-management
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: attendanceId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+#        - AttributeName: image48
+#          AttributeType: S
+        - AttributeName: name
+          AttributeType: S
+#        - AttributeName: startAt
+#          AttributeType: N
+#        - AttributeName: endAt
+#          AttributeType: N
+        - AttributeName: startAtDay
+          AttributeType: N
+        - AttributeName: startAtMonth
+          AttributeType: N
+      KeySchema:
+        - AttributeName: attendanceId
+          KeyType: HASH
+#        - AttributeName: name
+#          KeyType: HASH
+#        - AttributeName: startAtDay
+#          KeyType: HASH
+#        - AttributeName: startAtMonth
+#          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: name-index
+          KeySchema:
+            - AttributeName: name
+              KeyType: HASH
+            - AttributeName: startAtMonth
+              KeyType: RANGE
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - startAt
+              - endAt
+              - startAtDay
+        - IndexName: startAtDay-index
+          KeySchema:
+            - AttributeName: startAtDay
+              KeyType: HASH
+            - AttributeName: userId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
