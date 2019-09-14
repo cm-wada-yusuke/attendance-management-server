@@ -8,6 +8,7 @@ module.exports = {
         'hello-world': path.resolve(__dirname, './src/lambda/handlers/api-gw/api-gw-greeting.ts'),
         'event': path.resolve(__dirname, './src/lambda/handlers/api-gw/api-gw-slack-event.ts'),
         'subscribe': path.resolve(__dirname, './src/lambda/handlers/kinesis/kinesis-event-subscribe.ts'),
+        'get-user-attendance': path.resolve(__dirname, './src/lambda/handlers/api-gw/api-gw-get-user-monthly-attendance.ts'),
     },
     externals: [nodeExternals({
         modulesFromFile: {

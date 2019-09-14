@@ -6,11 +6,13 @@ import {
   UserProfile
 } from '../../domains/attendance/reaction-attendance-use-case';
 import * as Console from 'console';
+import { DateTime } from 'luxon';
+import { Attendance } from '../../domains/attendance/get-user-attendance-use-case';
 
 const AttendanceManagementTable = process.env.ATTENDANCE_MANAGEMENT_TABLE_NAME!;
 const Region = process.env.REGION!;
 
-const DYNAMO = new DynamoDB.DocumentClient(
+const DynamoDBClient = new DynamoDB.DocumentClient(
   {
     apiVersion: '2012-08-10',
     region: Region
@@ -34,7 +36,7 @@ export class DynamodbAttendanceManagementTable {
       }
     };
     try {
-      await DYNAMO.put(param).promise();
+      await DynamoDBClient.put(param).promise();
     } catch (e) {
       Console.log(e);
     }
@@ -55,9 +57,42 @@ export class DynamodbAttendanceManagementTable {
       }
     };
     try {
-      await DYNAMO.update(param).promise();
+      await DynamoDBClient.update(param).promise();
     } catch (e) {
       Console.log(e);
+    }
+  }
+
+  public static async listByNameIndex(name: string, month: DateTime): Promise<Attendance[]> {
+    Console.log('params', name, month, month.toISO(), month.toMillis());
+    const param: DocumentClient.QueryInput = {
+      TableName: AttendanceManagementTable,
+      Limit: 31,
+      IndexName: 'name-index',
+      KeyConditionExpression: '#name = :name and startAtMonth = :startAtMonth',
+      ExpressionAttributeNames: {
+        '#name': 'name'
+      },
+      ExpressionAttributeValues: {
+        ':name': name,
+        ':startAtMonth': month.toMillis()
+      }
+    };
+    const response = await DynamoDBClient.query(param).promise();
+    const items = response.Items!;
+    return items.map(DynamodbAttendanceManagementTable.convertAttendanceDataToModel);
+
+  }
+
+  private static convertAttendanceDataToModel(item: DocumentClient.AttributeMap): Attendance {
+    return {
+      attendanceId: item.attendaceId,
+      userId: item.userId,
+      name: item.name,
+      startAt: DateTime.fromMillis(Number(item.startAt)),
+      endAt: DateTime.fromMillis(Number(item.endAt)),
+      startAtDay: DateTime.fromMillis(Number(item.startAtDay)),
+      startAtMonth: DateTime.fromMillis(Number(item.startAtMonth)),
     }
   }
 

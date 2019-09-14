@@ -7,6 +7,8 @@ Resources:
       Name: !Sub ${Env}-${AppName}-attendance-api
       StageName: !Ref ApiVersion
       EndpointConfiguration: REGIONAL
+      Cors:
+        AllowOrigin: "'*'"
       DefinitionBody:
         swagger: "2.0"
         info:
@@ -51,6 +53,42 @@ Resources:
                       application/json: |
                         $input.json('$')
                 passthroughBehavior: "WHEN_NO_TEMPLATES"
+          /admin/attendances:
+            get:
+              produces:
+                - "application/json"
+              parameters:
+                - in: query
+                  name: name
+                  type: string
+                  required: true
+                - in: query
+                  name: month
+                  type: string
+                  required: true
+              responses:
+                "200":
+                  schema:
+                    $ref: "#/definitions/Attendances"
+              x-amazon-apigateway-request-validator: params-only
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetUserMonthlyAttendanceLambda.Arn}/invocations
+                requestTemplates:
+                  application/json: |
+                    {
+                      "name": "$input.params('name')",
+                      "month": "$input.params('month')"
+                    }
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseTemplates:
+                      application/json: |
+                        $input.json('$')
+                passthroughBehavior: "WHEN_NO_TEMPLATES"
+                httpMethod: "POST"
+                type: "AWS"
+
 
   SlackSubscribeLambda:
     Type: AWS::Serverless::Function
@@ -79,6 +117,31 @@ Resources:
             StartingPosition: LATEST
             BatchSize: 100
             Enabled: true
+  GetUserMonthlyAttendanceLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Env}-${AppName}-get-attendance
+      Role: !GetAtt SlackIntegrationLambdaRole.Arn
+      Handler: get-user-attendance/index.handler
+      Runtime: nodejs10.x
+      CodeUri:
+        Bucket: !Ref DeployBucketName
+        Key: !Sub ${ChangeSetHash}/dist.zip
+      Timeout: 10
+      Environment:
+        Variables:
+          ENV: !Ref Env
+          REGION: !Ref AWS::Region
+          WHITE_CHANNEL_TABLE_NAME: !Ref AttendanceWhiteChannelTable
+          ATTENDANCE_MANAGEMENT_TABLE_NAME: !Ref AttendanceManagementTable
+      Events:
+        AttendanceApi:
+          Type: Api
+          Properties:
+            Path: /admin/attendances
+            Method: GET
+            RestApiId: !Ref AttendanceApi
+
 
   SlackIntegrationLambdaRole:
     Type: 'AWS::IAM::Role'
