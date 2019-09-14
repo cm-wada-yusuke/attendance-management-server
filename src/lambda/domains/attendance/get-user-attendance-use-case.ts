@@ -15,6 +15,7 @@ export interface Attendance {
   attendanceId: string;
   userId: string;
   name: string;
+  displayName: string;
   startAt: DateTime;
   endAt: DateTime;
   startAtDay: DateTime;

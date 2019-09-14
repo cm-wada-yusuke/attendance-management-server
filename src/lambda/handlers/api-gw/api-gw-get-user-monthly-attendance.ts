@@ -29,6 +29,7 @@ interface AttendanceResponse {
   attendanceId: string;
   userId: string;
   name: string;
+  displayName: string;
   startAt: string;
   endAt: string;
   startAtDay: string;

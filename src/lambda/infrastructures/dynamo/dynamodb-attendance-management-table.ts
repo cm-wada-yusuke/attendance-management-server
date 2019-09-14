@@ -28,6 +28,7 @@ export class DynamodbAttendanceManagementTable {
         attendanceId: `${reaction.user}-${extension.reactAtDay.toMillis()}`,
         userId: reaction.user,
         name: profile.name,
+        displayName: profile.displayName,
         image48: profile.image48,
         startAt: extension.reactAt.toMillis(),
         startAtDay: extension.reactAtDay.toMillis(),
@@ -86,9 +87,10 @@ export class DynamodbAttendanceManagementTable {
 
   private static convertAttendanceDataToModel(item: DocumentClient.AttributeMap): Attendance {
     return {
-      attendanceId: item.attendaceId,
+      attendanceId: item.attendanceId,
       userId: item.userId,
       name: item.name,
+      displayName: item.displayName,
       startAt: DateTime.fromMillis(Number(item.startAt)),
       endAt: DateTime.fromMillis(Number(item.endAt)),
       startAtDay: DateTime.fromMillis(Number(item.startAtDay)),
