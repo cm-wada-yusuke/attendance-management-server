@@ -226,23 +226,13 @@ Resources:
       AttributeDefinitions:
         - AttributeName: attendanceId
           AttributeType: S
-        - AttributeName: userId
-          AttributeType: S
         - AttributeName: name
           AttributeType: S
-        - AttributeName: startAtDay
-          AttributeType: N
         - AttributeName: startAtMonth
           AttributeType: N
       KeySchema:
         - AttributeName: attendanceId
           KeyType: HASH
-#        - AttributeName: name
-#          KeyType: HASH
-#        - AttributeName: startAtDay
-#          KeyType: HASH
-#        - AttributeName: startAtMonth
-#          KeyType: HASH
       GlobalSecondaryIndexes:
         - IndexName: name-index
           KeySchema:
@@ -256,14 +246,7 @@ Resources:
               - attendanceId
               - userId
               - displayName
+              - image48
               - startAt
               - endAt
               - startAtDay
-        - IndexName: startAtDay-index
-          KeySchema:
-            - AttributeName: startAtDay
-              KeyType: HASH
-            - AttributeName: userId
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL

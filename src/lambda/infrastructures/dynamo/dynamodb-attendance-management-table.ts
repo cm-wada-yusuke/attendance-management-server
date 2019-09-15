@@ -91,6 +91,7 @@ export class DynamodbAttendanceManagementTable {
       userId: item.userId,
       name: item.name,
       displayName: item.displayName,
+      image48: item.image48,
       startAt: DateTime.fromMillis(Number(item.startAt)),
       endAt: DateTime.fromMillis(Number(item.endAt)),
       startAtDay: DateTime.fromMillis(Number(item.startAtDay)),

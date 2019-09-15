@@ -30,6 +30,7 @@ interface AttendanceResponse {
   userId: string;
   name: string;
   displayName: string;
+  image48: string;
   startAt: string;
   endAt: string;
   startAtDay: string;
