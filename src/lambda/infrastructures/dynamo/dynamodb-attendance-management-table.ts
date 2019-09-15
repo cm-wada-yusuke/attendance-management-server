@@ -21,6 +21,12 @@ const DynamoDBClient = new DynamoDB.DocumentClient(
 
 export class DynamodbAttendanceManagementTable {
 
+  /**
+   * 開始のリアクションをもとに勤怠アイテムを作成します。
+   * @param reaction リアクション
+   * @param extension リアクションから生成した日付情報
+   * @param profile ユーザープロファイル
+   */
   public static async createStart(reaction: ReactionContent, extension: ReactDateExtension, profile: UserProfile): Promise<void> {
     const param: DocumentClient.PutItemInput = {
       TableName: AttendanceManagementTable,
@@ -43,6 +49,11 @@ export class DynamodbAttendanceManagementTable {
     }
   }
 
+  /**
+   * 終了リアクションをもとに勤怠アイテムを更新します。開始リアクションにより、すでにアイテムが生成されていることが前提です。
+   * @param reaction リアクション
+   * @param extension リアクションから生成した日付情報
+   */
   public static async updateEnd(reaction: ReactionContent, extension: ReactDateExtension): Promise<void> {
     const param: DocumentClient.UpdateItemInput = {
       TableName: AttendanceManagementTable,
@@ -64,6 +75,11 @@ export class DynamodbAttendanceManagementTable {
     }
   }
 
+  /**
+   * ユーザー名と年月からユーザーごとの月別勤怠リストをクエリします。
+   * @param name ユーザー名
+   * @param month 年月
+   */
   public static async listByNameIndex(name: string, month: DateTime): Promise<Attendance[]> {
     Console.log('params', name, month, month.toISO(), month.toMillis());
     const param: DocumentClient.QueryInput = {
@@ -85,6 +101,10 @@ export class DynamodbAttendanceManagementTable {
 
   }
 
+  /**
+   * 勤怠アイテムをユースケースで利用できる形式に変換します。
+   * @param item 勤怠アイテム
+   */
   private static convertAttendanceDataToModel(item: DocumentClient.AttributeMap): Attendance {
     return {
       attendanceId: item.attendanceId,
