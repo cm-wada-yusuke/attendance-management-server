@@ -110,6 +110,58 @@ export class ApiClientSlack {
     ]);
   }
 
+  /**
+   * 警告をスレッドに投稿します。
+   */
+  public static async postAlert(reaction: ReactionContent, profile: UserProfile): Promise<void> {
+    const request: PostMessageRequest = {
+      token: BotAccessToken,
+      channel: reaction.item.channel,
+      as_user: false,
+      icon_url: profile.image48,
+      thread_ts: reaction.item.ts, // thread_ts を指定すると特定のスレッドに対するリプライになります。
+      username: `Attendancer - ${profile.displayName ? profile.displayName : profile.name}`,
+      blocks: ApiClientSlack.createAlertBlock(reaction, profile)
+    };
+
+    try {
+      const response = await axios.post('https://slack.com/api/chat.postMessage', request, {
+        headers: {
+          'Content-Type': 'application/json;utf-8',
+          'Authorization': `Bearer ${BotAccessToken}`
+        }
+      });
+      Console.log(response);
+    } catch (e) {
+      Console.log(e);
+      throw e;
+    }
+  }
+
+  private static createAlertBlock(reaction: ReactionContent, profile: UserProfile): string {
+    const timestampBlock = `<!date^${parseInt(reaction.eventTs)}^Reacted {date_num} {time_secs}|Reacted 2014-02-18 6:39:42 AM>`;
+
+    return JSON.stringify([
+      {
+        'type': 'section',
+        'text': {
+          'type': 'mrkdwn',
+          'text': `@${profile.name} 日付を超えての :${reaction.reaction}: は原則禁止です。理由を添えて書き込んでください。`
+        }
+      },
+      {
+        'type': 'context',
+        'elements': [
+          {
+            'type': 'mrkdwn',
+            // 時刻は、Slack のクライアントのタイムゾーンに合わせるためSlack指定の形式を利用しています。
+            'text': timestampBlock
+          }
+        ]
+      },
+    ]);
+  }
+
 
 }
 

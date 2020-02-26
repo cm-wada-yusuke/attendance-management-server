@@ -1,6 +1,7 @@
 import { DynamoDB } from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
-import { Channel } from '../../domains/attendance/reaction-attendance-use-case';
+import { Channel, CheckContent } from '../../domains/attendance/reaction-attendance-use-case';
+import * as Console from 'console';
 
 const WhiteChannelTableName = process.env.WHITE_CHANNEL_TABLE_NAME!;
 const Region = process.env.REGION!;
@@ -24,6 +25,27 @@ export class DynamodbWhiteChannelTable {
     return response.Items!.map(item => ({
       channel: item.channelId
     }));
+  }
+
+  public static async getCheckContent(channelId: string): Promise<CheckContent> {
+
+    const params: DocumentClient.GetItemInput = {
+      TableName: WhiteChannelTableName,
+      Key: {channelId: channelId}
+    };
+
+    try {
+
+      const response = await DYNAMO.get(params).promise();
+      return {
+        reaction: response.Item!.reaction
+      };
+    } catch (e) {
+      Console.log(e);
+      return {
+        reaction: ''
+      };
+    }
   }
 
 }
