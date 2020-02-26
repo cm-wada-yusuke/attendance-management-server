@@ -131,14 +131,3 @@ Resources:
       RetentionPeriodHours: 24
       ShardCount: 1
 
-  AttendanceWhiteChannelTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub ${Env}-${AppName}-white-list
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: channelId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: channelId
-          KeyType: HASH
